@@ -1,3 +1,7 @@
 {
-  "git.suggestSmartCommit": false
+  "git.suggestSmartCommit": false,
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#1a643b",
+    "titleBar.inactiveBackground": "#1a643b"
+  }
 }
