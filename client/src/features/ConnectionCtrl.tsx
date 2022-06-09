@@ -7,7 +7,7 @@ import {
   INPUT_STYLE_THEME,
 } from "../components/input";
 
-export function ControlRoom({
+export function ConnectionCtrl({
   onConnect,
   onDisconnect,
 }: {
@@ -21,7 +21,7 @@ export function ControlRoom({
   };
 
   return (
-    <WaitingRoomWrapper>
+    <ConnectionCtrlWrapper>
       <Input
         lineTheme={INPUT_LINE_THEME.HORIZONTAL}
         styleTheme={INPUT_STYLE_THEME.DEFAULT}
@@ -31,10 +31,10 @@ export function ControlRoom({
       />
       <Button label="입장" onClick={onClickHandler} />
       <Button label="나가기" onClick={onDisconnect} />
-    </WaitingRoomWrapper>
+    </ConnectionCtrlWrapper>
   );
 }
 
-const WaitingRoomWrapper = styled.div`
+const ConnectionCtrlWrapper = styled.div`
   display: flex;
 `;

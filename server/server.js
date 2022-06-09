@@ -55,7 +55,7 @@ io.on("connect", (socket) => {
     console.log(item, "나가기");
     io.emit("receive message", {
       type: "out",
-      name: userName,
+      name: item.name,
       message: "",
     });
   });
@@ -70,7 +70,7 @@ io.on("connect", (socket) => {
   });
 
   socket.on("send message", (item) => {
-    console.log(`${item.name} : ${item.message}`);
+    console.log(`send message : ${JSON.stringify(item)}`);
     io.emit("receive message", {
       type: "msg",
       name: item.name,
