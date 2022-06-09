@@ -33,6 +33,7 @@ const io = socketIO(server, {
 // # socket.io 객체의 이벤트 리스터 설정
 // 1) 연결 성공 이벤트: "socket.io 객체"로 "connect" 이벤트 처리
 io.on("connect", (socket) => {
+  let userName = "";
   const ip =
     socket.request.headers["x-forwarded-for"] ||
     socket.request.connection.remoteAddress;
@@ -42,6 +43,21 @@ io.on("connect", (socket) => {
 
   socket.on("init", (payload) => {
     console.log("init", payload);
+    userName = payload;
+    io.emit("receive message", {
+      type: "init",
+      name: payload,
+      message: "",
+    });
+  });
+
+  socket.on("room out", (item) => {
+    console.log(item, "나가기");
+    io.emit("receive message", {
+      type: "out",
+      name: userName,
+      message: "",
+    });
   });
 
   socket.on("disconnect", (reason) => {
@@ -55,6 +71,10 @@ io.on("connect", (socket) => {
 
   socket.on("send message", (item) => {
     console.log(`${item.name} : ${item.message}`);
-    io.emit("receive message", { name: item.name, message: item.message });
+    io.emit("receive message", {
+      type: "msg",
+      name: item.name,
+      message: item.message,
+    });
   });
 });
