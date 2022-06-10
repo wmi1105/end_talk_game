@@ -21,8 +21,8 @@ const apiConfig = {
   },
 };
 
-const dictionary = async (str) => {
-  let response = [];
+const dictionary = async (str: string) => {
+  let response: any[] = [];
   await axios({
     ...apiConfig,
     params: {
@@ -30,10 +30,10 @@ const dictionary = async (str) => {
       q: str,
     },
   })
-    .then((res) => {
+    .then((res: any) => {
       response = res.data.channel.item;
     })
-    .catch((err) => {});
+    .catch((err: any) => {});
 
   return response;
 };

@@ -3,7 +3,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const socket = require("./socket.js");
+const socket = require("./socket.ts");
 
 // # 정적 파일 경로 설정
 const path = require("path");
