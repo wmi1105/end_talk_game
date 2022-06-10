@@ -7,23 +7,20 @@ export function useSocket() {
   const [userName, setUserName] = useState("");
   const [chatMessages, setMessages] = useState<ReceiveType[]>([]);
 
-  console.log(chatMessages);
-
   const socketConnection = useCallback(() => {
-    socket.current = connect("http://127.0.0.1:8080", {
-      path: "/socket.io",
-      transports: ["websocket"],
-    });
+    if (socket.current) {
+      socket.current.emit("init", userName);
 
-    socket.current.emit("init", userName);
-
-    socket.current.on("receive message", (receive: ReceiveType) => {
-      console.log(`name : ${receive.name} , message :${receive.message}`);
-      setMessages((prev) => [...prev, receive]);
-      if (receive.type === "out") {
-        if (socket.current) socket.current.close();
-      }
-    });
+      socket.current.on("receive message", (receive: ReceiveType) => {
+        console.log(`name : ${receive.name} , message :${receive.message}`);
+        setMessages((prev) => [...prev, receive]);
+        if (receive.type === "out") {
+          if (socket.current) socket.current.close();
+        }
+      });
+    } else {
+      //서버 연결상태 불량
+    }
   }, [userName]);
 
   const ioConnect = (name: string) => {
@@ -36,17 +33,32 @@ export function useSocket() {
     }
   };
 
-  const disconnect = () => {
+  const disconnect = useCallback(() => {
     if (socket.current) {
       //   socket.current.close();
       socket.current.emit("room out", { name: userName });
       setUserName("");
     }
-  };
+  }, [userName]);
+
+  useEffect(() => {
+    const serverConnect = connect("http://127.0.0.1:8080", {
+      path: "/socket.io",
+      transports: ["websocket"],
+    });
+
+    socket.current = serverConnect;
+  }, []);
 
   useEffect(() => {
     if (userName !== "") socketConnection();
   }, [userName, socketConnection]);
+
+  useEffect(() => {
+    return () => {
+      disconnect();
+    };
+  }, []);
 
   return { userName, chatMessages, ioConnect, sendMessage, disconnect };
 }

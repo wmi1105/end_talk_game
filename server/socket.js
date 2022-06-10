@@ -1,36 +1,65 @@
-const { server } = require("./server");
-// # socket.io 모듈 추출
 const socketIO = require("socket.io");
+const api = require("./api.js");
 
-// # socket.io 객체 생성: 1) http서버 연결, 2) path 설정(생략시 디폴트: /socket.io)
-const io = socketIO(server, { path: "/socket.io" });
+const response = api.dictionary("나무");
 
-// # socket.io 객체의 이벤트 리스터 설정
-// 1) 연결 성공 이벤트: "socket.io 객체"로 "connect" 이벤트 처리
-io.on("connect", (socket) => {
-  const ip =
-    socket.request.headers["x-forwarded-for"] ||
-    socket.request.connection.remoteAddress;
-  console.log(
-    `클라이언트 연결 성공 - 클라이언트IP: ${ip}, 소켓ID: ${socket.id}`
-  );
-
-  // 2) 연결 종료 이벤트: "매개변수로 들어온 socket"으로 처리해야 함 주의!
-  socket.on("disconnect", (reason) => {
-    console.log(reason);
-    console.log(`연결 종료 - 클라이언트IP: ${ip}, 소켓ID: ${socket.id}`);
+module.exports = function ({ server }) {
+  const io = socketIO(server, {
+    path: "/socket.io",
+    cors: {
+      origin: "htttp://localhost:1001",
+      methods: ["GET", "POST"],
+    },
   });
 
-  // 3) 에러 발생 이벤트: "매개변수로 들어온 socket"으로 처리해야 함 주의!
-  socket.on("error", (error) => {
-    console.log(`에러 발생: ${error}`);
-  });
+  // # socket.io 객체의 이벤트 리스터 설정
+  // 1) 연결 성공 이벤트: "socket.io 객체"로 "connect" 이벤트 처리
+  io.on("connect", (socket) => {
+    let userName = "";
+    const ip =
+      socket.request.headers["x-forwarded-for"] ||
+      socket.request.connection.remoteAddress;
+    console.log(
+      `클라이언트 연결 성공 - 클라이언트IP: ${ip}, 소켓ID: ${socket.id}`
+    );
 
-  // 4) 클라이언트에서 보낸 이벤트 처리: 클라이언트에서 "client_msg" 이름으로 보낸 데이터 수신
-  socket.on("client_msg", (data) => {
-    console.log(`클라이언트에서 보낸 메시지 수신: ${data}`);
+    socket.on("init", (payload) => {
+      console.log("init", payload);
+      userName = payload;
+      io.emit("receive message", {
+        type: "init",
+        name: payload,
+        message: "",
+      });
+    });
 
-    // # 클라이언트에게 "server_msg" 이름으로 데이터 전송
-    socket.emit("server_msg", `[${socket.id}]소켓 서버에서 보낸 메세지입니다.`);
+    socket.on("room out", (item) => {
+      console.log(item, "나가기");
+      io.emit("receive message", {
+        type: "out",
+        name: item.name,
+        message: "",
+      });
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log(reason);
+      console.log(`연결 종료 - 클라이언트IP: ${ip}, 소켓ID: ${socket.id}`);
+    });
+
+    socket.on("error", (error) => {
+      console.log(`에러 발생: ${error}`);
+    });
+
+    socket.on("send message", (item) => {
+      console.log(`send message : ${JSON.stringify(item)}`);
+      if (item.name !== "") {
+        io.emit("receive message", {
+          type: "msg",
+          name: item.name,
+          message: item.message,
+        });
+      }
+    });
   });
-});
+};
