@@ -63,8 +63,22 @@ module.exports = function ({ server }: { server: any }) {
       });
     });
 
-    socket.on("room out", (item: any) => {
+    socket.on("room out", (item: { name: string }) => {
       console.log(item, "나가기");
+
+      let temp: { roomId: string; members: string[] }[] = [];
+      headCount.forEach((obj) => {
+        const members = obj.members.filter((mm) => mm !== item.name);
+
+        if (members.length > 0) {
+          temp = [...temp, { ...obj, members }];
+        } else {
+          rooms = rooms.filter((roomId) => roomId !== obj.roomId);
+        }
+      });
+
+      headCount = [...temp];
+
       io.emit("receive message", {
         type: "out",
         name: item.name,
