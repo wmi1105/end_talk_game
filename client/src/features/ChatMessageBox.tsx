@@ -1,20 +1,11 @@
 import styled from "@emotion/styled";
-import { useMemo } from "react";
-import { ReceiveType } from "./Chat_types";
+import { MessageType } from "./Chat_types";
 
-function ChatBox({ isMe, msg }: { isMe: boolean; msg: ReceiveType }) {
-  const state: { [key: string]: string } = {
-    init: "입장",
-    out: "퇴장",
-    msg: "",
-  };
-
+function ChatBox({ isMe, msg }: { isMe: boolean; msg: MessageType }) {
   if (msg.type !== "msg") {
     return (
       <ChatWrapper align="center">
-        <ChatBoxStyled>
-          {msg.name} 님이 {state[msg.type]} 하였습니다.
-        </ChatBoxStyled>
+        <ChatBoxStyled>{msg.message}</ChatBoxStyled>
       </ChatWrapper>
     );
   } else if (isMe) {
@@ -43,7 +34,7 @@ export function ChatMessageBox({
   messages,
 }: {
   userName: string;
-  messages: ReceiveType[];
+  messages: MessageType[];
 }) {
   return (
     <MessageBoxWrapper>

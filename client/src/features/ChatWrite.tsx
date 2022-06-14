@@ -1,18 +1,21 @@
 import styled from "@emotion/styled";
 import { useState } from "react";
+import { useSetRecoilState } from "recoil";
 import { Button } from "../components/button";
 import {
   Input,
   INPUT_LINE_THEME,
   INPUT_STYLE_THEME,
 } from "../components/input";
+import { SendChatState } from "../store/controlState";
 
-export function ChatWrite({ onSend }: { onSend: (val: string) => void }) {
+export function ChatWrite() {
   const [inputValue, setInputValue] = useState("");
+  const setSendChatState = useSetRecoilState(SendChatState);
 
   const onSendHandler = () => {
     if (inputValue !== "") {
-      onSend(inputValue);
+      setSendChatState(inputValue);
       setInputValue("");
     }
   };

@@ -2,10 +2,7 @@ const e = require("cors");
 const socketIO = require("socket.io");
 const api = require("./api.ts");
 
-const response = api.dictionary("나무");
-
-let rooms: string[] = [];
-let headCount: { roomId: string; members: string[] }[] = [];
+const roomCtrl = require("./rooms.ts");
 
 module.exports = function ({ server }: { server: any }) {
   const io = socketIO(server, {
@@ -27,57 +24,22 @@ module.exports = function ({ server }: { server: any }) {
       `클라이언트 연결 성공 - 클라이언트IP: ${ip}, 소켓ID: ${socket.id}`
     );
 
-    socket.on("init", (payload: any) => {
+    socket.on("init", (payload: { name: string }) => {
       console.log("init", payload);
-      userName = payload;
+      userName = payload.name;
 
-      if (rooms.length === 0) {
-        const id = socket.id;
-        rooms = [...rooms, id];
-        headCount = [...headCount, { roomId: id, members: [payload] }];
-      } else {
-        const lastRoomId = rooms[rooms.length - 1];
-        const filter = headCount.filter((obj) => obj.roomId === lastRoomId);
-
-        if (filter[0].members.length < 8) {
-          const member = [...filter[0].members, payload];
-          headCount = headCount.map((obj) =>
-            obj.roomId === lastRoomId ? { ...obj, members: member } : { ...obj }
-          );
-        } else {
-          const id = socket.id;
-          rooms = [...rooms, id];
-          headCount = [...headCount, { roomId: id, members: [payload] }];
-        }
-      }
-
-      console.group("================ ROOM  =====================");
-      console.log(rooms);
-      console.log(headCount);
-      console.groupEnd();
+      const roomId = roomCtrl.entranceUser(socket.id, userName);
 
       io.emit("receive message", {
         type: "init",
-        name: payload,
+        name: userName,
+        roomId: roomId,
         message: "",
       });
     });
 
-    socket.on("room out", (item: { name: string }) => {
-      console.log(item, "나가기");
-
-      let temp: { roomId: string; members: string[] }[] = [];
-      headCount.forEach((obj) => {
-        const members = obj.members.filter((mm) => mm !== item.name);
-
-        if (members.length > 0) {
-          temp = [...temp, { ...obj, members }];
-        } else {
-          rooms = rooms.filter((roomId) => roomId !== obj.roomId);
-        }
-      });
-
-      headCount = [...temp];
+    socket.on("exit", (item: { roomId: string; name: string }) => {
+      roomCtrl.exitUser(item.roomId, item.name);
 
       io.emit("receive message", {
         type: "out",
@@ -95,15 +57,20 @@ module.exports = function ({ server }: { server: any }) {
       console.log(`에러 발생: ${error}`);
     });
 
-    socket.on("send message", (item: any) => {
-      console.log(`send message : ${JSON.stringify(item)}`);
-      if (item.name !== "") {
-        io.emit("receive message", {
-          type: "msg",
-          name: item.name,
-          message: item.message,
-        });
+    socket.on(
+      "send message",
+      async (item: { roomId: string; name: string; message: string }) => {
+        if (item.name !== "") {
+          const verify: boolean = await api.wordVerification(item.message);
+
+          io.emit("receive game ctrl", {
+            nowTern: item.name,
+            nextTern: item.name,
+            verify: verify,
+            message: item.message,
+          });
+        }
       }
-    });
+    );
   });
 };
