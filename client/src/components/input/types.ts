@@ -21,6 +21,7 @@ export interface IInput {
   lineTheme: INPUT_LINE_THEME;
   placeholder?: string;
   value: string;
+  disabled: boolean;
   onEnter?: () => void;
   onChange: (val: string) => void;
 }

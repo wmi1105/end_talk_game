@@ -1,19 +1,17 @@
 import styled from "@emotion/styled";
-import { ChatMessageBox } from "../features/ChatMessageBox";
-import { ChatWrite } from "../features/ChatWrite";
-import { ConnectionCtrl } from "../features/ConnectionCtrl";
+
 import { useSocket } from "../hooks/useSocket";
 import { ChatPage } from "./ChatPage";
 import { MainPage } from "./MainPage";
 
 export function DefaultPage() {
-  const { displayState } = useSocket();
+  const { displayState, onStart } = useSocket();
 
   return (
     <Container>
       <Section>
         {displayState === "MAIN" && <MainPage />}
-        {displayState === "CHAT" && <ChatPage />}
+        {displayState === "CHAT" && <ChatPage onStart={onStart} />}
       </Section>
     </Container>
   );

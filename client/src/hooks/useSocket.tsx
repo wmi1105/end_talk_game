@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRecoilState } from "recoil";
 import { connect, Socket } from "socket.io-client";
-import { ReceiveType } from "../features/Chat_types";
-import { ChatState, RoomState, SendChatState } from "../store/controlState";
+
+import {
+  ChatState,
+  ReceiveType,
+  RoomState,
+  SendChatState,
+} from "../store/controlState";
 
 export function useSocket() {
   const socket = useRef<Socket>();
@@ -25,8 +30,14 @@ export function useSocket() {
         let message = receive.message;
         switch (receive.type) {
           case "init":
-            setRoomState((prev) => ({ ...prev, roomId: receive.roomId }));
+            setRoomState((prev) => ({
+              ...prev,
+              master: receive.master,
+              roomId: receive.roomId,
+            }));
             message = `${receive.name} 님이 입장 하였습니다.`;
+
+            name.current = roomState.name;
             break;
 
           case "out":
@@ -49,16 +60,31 @@ export function useSocket() {
           nowTern: string;
           nextTern: string;
           verify: boolean;
+          suggestion: string;
           message: string;
         }) => {
           console.log(receive);
-          setSendChatMessage("");
+
           if (receive.verify) {
             //성공, 다음 tern,
-            setMessages((prev) => [
-              ...prev,
-              { name: receive.nowTern, type: "msg", message: receive.message },
-            ]);
+            if (receive.nowTern === "" && receive.message === "") {
+              setMessages([{ name: "", type: "start", message: "시작! " }]);
+            } else {
+              setMessages((prev) => [
+                ...prev,
+                {
+                  name: receive.nowTern,
+                  type: "msg",
+                  message: receive.message,
+                },
+              ]);
+            }
+
+            setSendChatMessage({
+              tern: receive.nextTern,
+              suggestion: receive.suggestion,
+              send: "",
+            });
           } else {
             //실패, 게임종료
             setMessages((prev) => [
@@ -98,8 +124,9 @@ export function useSocket() {
   const disconnect = useCallback(() => {
     if (socket.current) {
       //   socket.current.close();
-      socket.current.emit("exit", { ...roomState });
-      setRoomState({ roomId: "", name: "" });
+      socket.current.emit("exit", { ...roomState, name: name.current });
+      setRoomState({ roomId: "", master: "", name: "" });
+      name.current = "";
       setDisplayState("MAIN");
     }
   }, [roomState, setRoomState]);
@@ -113,6 +140,13 @@ export function useSocket() {
     socket.current = serverConnect;
   }, []);
 
+  const onStart = () => {
+    if (socket.current) {
+      //   socket.current.close();
+      socket.current.emit("game start", { roomId: roomState.roomId });
+    }
+  };
+
   useEffect(() => {
     if (roomState.roomId === "" && roomState.name !== "") socketConnection();
     if (roomState.roomId !== "" && roomState.name !== "")
@@ -121,7 +155,7 @@ export function useSocket() {
   }, [roomState, socketConnection, disconnect]);
 
   useEffect(() => {
-    if (sendChatMessage !== "") sendMessage(sendChatMessage);
+    if (sendChatMessage.send !== "") sendMessage(sendChatMessage.send);
   }, [sendChatMessage, sendMessage]);
 
   useEffect(() => {
@@ -137,5 +171,6 @@ export function useSocket() {
     // ioConnect,
     sendMessage,
     disconnect,
+    onStart,
   };
 }

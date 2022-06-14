@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { MessageType } from "./Chat_types";
+import { MessageType } from "../store/controlState";
 
 function ChatBox({ isMe, msg }: { isMe: boolean; msg: MessageType }) {
   if (msg.type !== "msg") {

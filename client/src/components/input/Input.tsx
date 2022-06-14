@@ -9,6 +9,7 @@ export function Input({
   lineTheme,
   placeholder,
   value,
+  disabled,
   onEnter,
   onChange,
 }: IInput) {
@@ -37,10 +38,15 @@ export function Input({
         onChange={onChangeHandler}
         placeholder={placeholder ? placeholder : ""}
         onKeyUp={onKeyupHandler}
+        disabled={disabled}
       />
     </InputWrapper>
   );
 }
+
+Input.defaultProps = {
+  disabled: false,
+};
 
 const InputWrapper = styled.div<{
   inputStyles: SerializedStyles;

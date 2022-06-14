@@ -1,24 +1,37 @@
 import styled from "@emotion/styled";
-import { useState } from "react";
-import { useSetRecoilState } from "recoil";
+import { useEffect, useState } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { Button } from "../components/button";
 import {
   Input,
   INPUT_LINE_THEME,
   INPUT_STYLE_THEME,
 } from "../components/input";
-import { SendChatState } from "../store/controlState";
+import { RoomState, SendChatState } from "../store/controlState";
 
 export function ChatWrite() {
   const [inputValue, setInputValue] = useState("");
-  const setSendChatState = useSetRecoilState(SendChatState);
+  const [sendChatState, setSendChatState] = useRecoilState(SendChatState);
+  const { name } = useRecoilValue(RoomState);
+  const { send, suggestion, tern } = sendChatState;
+
+  console.log(tern, name);
 
   const onSendHandler = () => {
-    if (inputValue !== "") {
-      setSendChatState(inputValue);
+    const suggestion = sendChatState.suggestion;
+
+    if (
+      inputValue !== "" &&
+      (suggestion === "" || inputValue[0] === suggestion)
+    ) {
+      setSendChatState((prev) => ({ ...prev, send: inputValue }));
       setInputValue("");
     }
   };
+
+  useEffect(() => {
+    if (tern === name) setInputValue(sendChatState.suggestion);
+  }, [sendChatState, tern, name]);
 
   return (
     <InputWrapper>
@@ -28,6 +41,7 @@ export function ChatWrite() {
         value={inputValue}
         onChange={setInputValue}
         onEnter={onSendHandler}
+        disabled={tern !== name}
       />
       <Button label="전송" onClick={onSendHandler} />
     </InputWrapper>

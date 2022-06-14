@@ -16,8 +16,8 @@ const apiConfig = {
     method: "exact",
     type1: ["word"],
     // type2: ["native", "chinese"],
-    type3: ["general"],
-    pos: [1],
+    // type3: ["general"],
+    // pos: [1],
   },
 };
 
@@ -43,13 +43,17 @@ const dictionary = async (str: string) => {
 
 let lastWord = "";
 
-const wordVerification = async (str: string): Promise<boolean> => {
+const wordVerification = async (str: string) => {
   if (str.length < 2) {
     /* fail : 빈값이거나 한글자 단어 */
     return false;
   }
   if (str.split(" ").length > 1) {
-    /* fail : 2음절 이상의 단어*/
+    /* fail */
+    return false;
+  }
+  if (lastWord !== "" && lastWord !== str[0]) {
+    /* fail : 첫음절이 틀렸으면 */
     return false;
   }
 
@@ -67,10 +71,18 @@ const wordVerification = async (str: string): Promise<boolean> => {
     console.log("===========> last word", lastWord);
   }
 
-  return check;
+  return {
+    verify: check,
+    suggestion: lastWord,
+  };
+};
+
+const gameReset = () => {
+  lastWord = "";
 };
 
 module.exports = {
   dictionary,
   wordVerification,
+  gameReset,
 };

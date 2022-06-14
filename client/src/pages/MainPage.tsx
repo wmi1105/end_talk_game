@@ -14,7 +14,8 @@ export function MainPage() {
   const [inputValue, setInputValue] = useState("");
 
   const onClickHandler = () => {
-    if (inputValue !== "") setRoomState({ name: inputValue, roomId: "" });
+    if (inputValue !== "")
+      setRoomState({ name: inputValue, roomId: "", master: "" });
   };
 
   return (

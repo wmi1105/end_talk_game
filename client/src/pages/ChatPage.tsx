@@ -5,7 +5,7 @@ import { ChatMessageBox } from "../features/ChatMessageBox";
 import { ChatWrite } from "../features/ChatWrite";
 import { ChatState, RoomState } from "../store/controlState";
 
-export function ChatPage() {
+export function ChatPage({ onStart }: { onStart: () => void }) {
   const [roomState, setRoomState] = useRecoilState(RoomState);
   const chatState = useRecoilValue(ChatState);
 
@@ -13,12 +13,12 @@ export function ChatPage() {
     setRoomState((prev) => ({ ...prev, name: "" }));
   };
 
-  const onClickStart = () => {};
-
   return (
     <ChatPageStyled>
       <ButtonWrapper>
-        <Button label="시작" onClick={onClickStart} />
+        {roomState.master === roomState.name && (
+          <Button label="시작" onClick={onStart} />
+        )}
         <Button label="나가기" onClick={onClickExit} />
       </ButtonWrapper>
       <ChattingRoomWrapper>

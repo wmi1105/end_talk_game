@@ -4,6 +4,7 @@ export interface ReceiveType {
   type: string;
   name: string;
   roomId: string;
+  master: string;
   message: string;
 }
 
@@ -17,6 +18,7 @@ export const RoomState = atom({
   key: "rootState",
   default: {
     roomId: "",
+    master: "",
     name: "",
   },
 });
@@ -26,7 +28,11 @@ export const ChatState = atom<MessageType[]>({
   default: [],
 });
 
-export const SendChatState = atom<string>({
+export const SendChatState = atom({
   key: "SendChatState",
-  default: "",
+  default: {
+    tern: "",
+    suggestion: "",
+    send: "",
+  },
 });

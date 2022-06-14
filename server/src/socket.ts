@@ -28,22 +28,26 @@ module.exports = function ({ server }: { server: any }) {
       console.log("init", payload);
       userName = payload.name;
 
-      const roomId = roomCtrl.entranceUser(socket.id, userName);
+      const { roomId, master } = roomCtrl.entranceUser(socket.id, userName);
 
-      io.emit("receive message", {
+      receiveMessage({
         type: "init",
         name: userName,
         roomId: roomId,
+        master: master,
         message: "",
       });
     });
 
     socket.on("exit", (item: { roomId: string; name: string }) => {
       roomCtrl.exitUser(item.roomId, item.name);
+      const { master } = roomCtrl.nowRoomMember(item.roomId);
 
-      io.emit("receive message", {
+      receiveMessage({
         type: "out",
         name: item.name,
+        roomId: item.roomId,
+        master: master,
         message: "",
       });
     });
@@ -57,20 +61,62 @@ module.exports = function ({ server }: { server: any }) {
       console.log(`에러 발생: ${error}`);
     });
 
+    socket.on("game start", (item: { roomId: string }) => {
+      const { members } = roomCtrl.nowRoomMember(item.roomId);
+      api.gameReset();
+
+      receiveGameCtrl({
+        nowTern: "",
+        nextTern: members[0],
+        verify: true,
+        suggestion: "",
+        message: "",
+      });
+    });
+
     socket.on(
       "send message",
       async (item: { roomId: string; name: string; message: string }) => {
         if (item.name !== "") {
-          const verify: boolean = await api.wordVerification(item.message);
+          const {
+            verify,
+            suggestion,
+          }: { verify: boolean; suggestion: string } =
+            await api.wordVerification(item.message);
 
-          io.emit("receive game ctrl", {
+          const { members } = roomCtrl.nowRoomMember(item.roomId);
+          const idx = members.indexOf(item.name);
+          const next = members.length - 1 === idx ? members[0] : members[idx];
+
+          receiveGameCtrl({
             nowTern: item.name,
-            nextTern: item.name,
-            verify: verify,
+            nextTern: next,
+            verify,
+            suggestion,
             message: item.message,
           });
         }
       }
     );
+
+    function receiveMessage(data: {
+      type: string;
+      name: string;
+      roomId: string;
+      master: string;
+      message: string;
+    }) {
+      io.emit("receive message", { ...data });
+    }
+
+    function receiveGameCtrl(data: {
+      nowTern: string;
+      nextTern: string;
+      verify: boolean;
+      suggestion: string;
+      message: string;
+    }) {
+      io.emit("receive game ctrl", { ...data });
+    }
   });
 };
