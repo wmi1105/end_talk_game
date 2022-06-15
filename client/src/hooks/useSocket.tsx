@@ -85,6 +85,8 @@ export function useSocket() {
               suggestion: receive.suggestion,
               send: "",
             });
+
+            setRoomState((prev) => ({ ...prev, gameState: true }));
           } else {
             //실패, 게임종료
             setMessages((prev) => [
@@ -100,6 +102,14 @@ export function useSocket() {
                 message: `탈락!`,
               },
             ]);
+
+            setSendChatMessage({
+              tern: "",
+              suggestion: "",
+              send: "",
+            });
+
+            setRoomState((prev) => ({ ...prev, gameState: false }));
           }
         }
       );
@@ -121,18 +131,27 @@ export function useSocket() {
     [roomState]
   );
 
+  const sendGameMessage = useCallback(
+    (message: string) => {
+      if (socket.current) {
+        socket.current.emit("send game message", { ...roomState, message });
+      }
+    },
+    [roomState]
+  );
+
   const disconnect = useCallback(() => {
     if (socket.current) {
       //   socket.current.close();
       socket.current.emit("exit", { ...roomState, name: name.current });
-      setRoomState({ roomId: "", master: "", name: "" });
+      setRoomState({ roomId: "", master: "", name: "", gameState: false });
       name.current = "";
       setDisplayState("MAIN");
     }
   }, [roomState, setRoomState]);
 
   useEffect(() => {
-    const serverConnect = connect("http://127.0.0.1:8080", {
+    const serverConnect = connect("http://192.168.1.23:8080", {
       path: "/socket.io",
       transports: ["websocket"],
     });
@@ -155,8 +174,11 @@ export function useSocket() {
   }, [roomState, socketConnection, disconnect]);
 
   useEffect(() => {
-    if (sendChatMessage.send !== "") sendMessage(sendChatMessage.send);
-  }, [sendChatMessage, sendMessage]);
+    if (roomState.gameState && sendChatMessage.send !== "")
+      sendGameMessage(sendChatMessage.send);
+    if (!roomState.gameState && sendChatMessage.send !== "")
+      sendMessage(sendChatMessage.send);
+  }, [sendChatMessage, sendGameMessage, roomState.gameState, sendMessage]);
 
   useEffect(() => {
     return () => {
@@ -169,7 +191,6 @@ export function useSocket() {
   return {
     displayState,
     // ioConnect,
-    sendMessage,
     disconnect,
     onStart,
   };

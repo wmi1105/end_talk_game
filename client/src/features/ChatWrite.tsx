@@ -12,10 +12,8 @@ import { RoomState, SendChatState } from "../store/controlState";
 export function ChatWrite() {
   const [inputValue, setInputValue] = useState("");
   const [sendChatState, setSendChatState] = useRecoilState(SendChatState);
-  const { name } = useRecoilValue(RoomState);
-  const { send, suggestion, tern } = sendChatState;
-
-  console.log(tern, name);
+  const { name, gameState } = useRecoilValue(RoomState);
+  const { tern } = sendChatState;
 
   const onSendHandler = () => {
     const suggestion = sendChatState.suggestion;
@@ -27,11 +25,13 @@ export function ChatWrite() {
       setSendChatState((prev) => ({ ...prev, send: inputValue }));
       setInputValue("");
     }
+
+    if (gameState === false) setInputValue("");
   };
 
   useEffect(() => {
     if (tern === name) setInputValue(sendChatState.suggestion);
-  }, [sendChatState, tern, name]);
+  }, [sendChatState, tern, name, gameState]);
 
   return (
     <InputWrapper>
@@ -41,7 +41,7 @@ export function ChatWrite() {
         value={inputValue}
         onChange={setInputValue}
         onEnter={onSendHandler}
-        disabled={tern !== name}
+        disabled={gameState && tern !== name}
       />
       <Button label="전송" onClick={onSendHandler} />
     </InputWrapper>

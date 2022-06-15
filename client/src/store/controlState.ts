@@ -20,6 +20,7 @@ export const RoomState = atom({
     roomId: "",
     master: "",
     name: "",
+    gameState: false,
   },
 });
 

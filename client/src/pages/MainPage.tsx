@@ -15,25 +15,38 @@ export function MainPage() {
 
   const onClickHandler = () => {
     if (inputValue !== "")
-      setRoomState({ name: inputValue, roomId: "", master: "" });
+      setRoomState({
+        name: inputValue,
+        roomId: "",
+        master: "",
+        gameState: false,
+      });
   };
 
   return (
     <MainPageStyled>
-      <Input
-        lineTheme={INPUT_LINE_THEME.HORIZONTAL}
-        styleTheme={INPUT_STYLE_THEME.DEFAULT}
-        value={inputValue}
-        onChange={setInputValue}
-        onEnter={onClickHandler}
-      />
-      <Button label="입장" onClick={onClickHandler} />
+      닉네임을 입력해 주세요.
+      <InputWrapper>
+        <Input
+          lineTheme={INPUT_LINE_THEME.HORIZONTAL}
+          styleTheme={INPUT_STYLE_THEME.DEFAULT}
+          value={inputValue}
+          onChange={setInputValue}
+          onEnter={onClickHandler}
+        />
+        <Button label="입장" onClick={onClickHandler} />
+      </InputWrapper>
     </MainPageStyled>
   );
 }
 
 const MainPageStyled = styled.div`
+  margin-top: calc(100vh - 50% - 16px);
+  text-align: center;
+`;
+
+const InputWrapper = styled.div`
+  padding: 10px 0;
   display: flex;
   justify-content: center;
-  margin-top: calc(100vh - 50% - 16px);
 `;

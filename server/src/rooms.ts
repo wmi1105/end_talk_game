@@ -2,26 +2,28 @@ let rooms: { roomId: string; master: string }[] = [];
 let headCount: { roomId: string; members: string[] }[] = [];
 
 function entranceUser(id: string, name: string) {
-  let roomId = id;
+  let roomId = "";
 
-  if (rooms.length === 0) {
-    rooms = [...rooms, { roomId, master: name }];
-    headCount = [...headCount, { roomId: id, members: [name] }];
-  } else {
+  if (rooms.length > 0) {
     const lastRoomId = rooms[rooms.length - 1].roomId;
     const filter = headCount.filter((obj) => obj.roomId === lastRoomId);
+    const sameName = filter[0].members.find((obj) => obj === name);
 
-    if (filter[0].members.length < 8) {
+    if (filter[0].members.length < 8 && !sameName) {
       const member = [...filter[0].members, name];
       headCount = headCount.map((obj) =>
         obj.roomId === lastRoomId ? { ...obj, members: member } : { ...obj }
       );
 
       roomId = lastRoomId;
-    } else {
-      rooms = [...rooms, { roomId, master: name }];
-      headCount = [...headCount, { roomId: id, members: [name] }];
     }
+  }
+
+  if (roomId === "") {
+    roomId = id;
+
+    rooms = [...rooms, { roomId, master: name }];
+    headCount = [...headCount, { roomId, members: [name] }];
   }
 
   roomStateLogger("ENTER");
@@ -63,6 +65,7 @@ function roomStateLogger(type: string) {
 function nowRoomMember(roomId: string) {
   const roomFilter = rooms.filter((obj) => obj.roomId === roomId);
   const filter = headCount.filter((obj) => obj.roomId === roomId);
+
   return {
     roomId: roomId,
     master: roomFilter[0].master,

@@ -8,7 +8,7 @@ module.exports = function ({ server }: { server: any }) {
   const io = socketIO(server, {
     path: "/socket.io",
     cors: {
-      origin: "htttp://localhost:1001",
+      origin: "http://192.168.1.23:1001",
       methods: ["GET", "POST"],
     },
   });
@@ -76,6 +76,20 @@ module.exports = function ({ server }: { server: any }) {
 
     socket.on(
       "send message",
+      async (item: { roomId: string; name: string; message: string }) => {
+        const { master } = roomCtrl.nowRoomMember(item.roomId);
+        receiveMessage({
+          type: "msg",
+          name: item.name,
+          roomId: item.roomId,
+          master: master,
+          message: item.message,
+        });
+      }
+    );
+
+    socket.on(
+      "send game message",
       async (item: { roomId: string; name: string; message: string }) => {
         if (item.name !== "") {
           const {
