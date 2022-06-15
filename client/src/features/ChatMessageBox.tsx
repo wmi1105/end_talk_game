@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { useEffect, useRef, useState } from "react";
 import { MessageType } from "../store/controlState";
 
 function ChatBox({ isMe, msg }: { isMe: boolean; msg: MessageType }) {
@@ -36,12 +37,23 @@ export function ChatMessageBox({
   userName: string;
   messages: MessageType[];
 }) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+  }, [messages]);
+
   return (
     <MessageBoxWrapper>
       {messages.map((msg, idx) => {
         const isMe = msg.name === userName;
         return <ChatBox key={idx} isMe={isMe} msg={msg} />;
       })}
+      <div ref={scrollRef} />
     </MessageBoxWrapper>
   );
 }
@@ -69,6 +81,7 @@ const ChatBoxStyled = styled.div`
 const IdBox = styled.span`
   padding: 5px 10px;
 `;
+
 const MsgBox = styled.span`
   padding: 5px 10px;
   background-color: white;
